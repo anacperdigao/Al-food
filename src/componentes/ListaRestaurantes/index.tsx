@@ -140,6 +140,7 @@ const ListaRestaurantes = () => {
       })
   }
 
+
   return (<section className={style.ListaRestaurantes}>
     <h1>Os restaurantes mais <em>bacanas</em>!</h1>
     {restaurantes?.map(item => <Restaurante restaurante={item} key={item.id} />)}
@@ -152,3 +153,5 @@ const ListaRestaurantes = () => {
 
 
 export default ListaRestaurantes
+
+ // OITAVO PASSO: vou começar todo o processo da requisição para os pratos no componente Restaurante.
