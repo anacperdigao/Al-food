@@ -1,9 +1,17 @@
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { IPaginacao } from '../../interfaces/IPaginacao';
 import IRestaurante from '../../interfaces/IRestaurante';
 import style from './ListaRestaurantes.module.scss';
 import Restaurante from './Restaurante';
 
-const ListaRestaurantes = () => {
+// QUINTO PASSO: se a gente for olhar na API, ela só esta entregando a primeira pagina, e a gente precisa pegar o
+// resto, por isso vamos criar uma nova interface IPaginacao.ts pra tratar isso.
 
+// SEGUNDO PASSO: vou deletar a lista de restaurantes anterior, nesse caso, vou só deixar comentado
+
+const ListaRestaurantes = () => {
+/*
   const restaurantes: IRestaurante[] = [
     {
       id: 1,
@@ -88,11 +96,59 @@ const ListaRestaurantes = () => {
       ]
     }
   ]
+  */
+
+  //TERCEIRO PASSO: vou adicionar a lista de restaurantes pelo useState
+  const [restaurantes, setRestaurantes] = useState<IRestaurante[]>([])
+
+  // SEXTO PASSO: criar o link para a próxima pagina e depois vou chamar embaixo do primeiro THEN
+  const [proximaPagina, setProximaPagina] = useState('')
+  
+
+  // PRIMEIRO PASSO: Vou começar aqui a fazer a requisição da API pelo hook use Effect
+  // Esse hook aceita dois parâmetros: 
+  // 1 - o que eu quero executar, nesse caso é obter restaurantes
+  // 2 - lista de dependencias para essa função executar, nesse caso posso deixar vazio [] e o React entende que 
+  // só vai criar uma vez quando o componente for montado.
+  /* MAIS SOBRE useEffect: Componentes são funções JavaScript e, por isso, quando um componente é atualizado, a função
+  é executada. Com o useEffect, podemos deixar para que o React gerencie as execuções, tornando possível executar a 
+  requisição apenas uma vez. */
+
+  useEffect(() => {
+
+    axios.get<IPaginacao<IRestaurante>>('http://localhost:8000/api/v1/restaurantes/')
+
+      .then(resposta => { //a resposta vem do backend e eu posso inpecionar no devtools na parte de Network
+        setRestaurantes(resposta.data.results)//QUARTO PASSO: adicionar o caminho para pegar a resposta no JSON
+        setProximaPagina(resposta.data.next)
+      })
+
+      .catch(erro => {
+        console.log(erro)// Aqui eu poderia fazer algo para tratar o erro, nesse caso nao to fazendo nada
+      })
+  }, [])
+
+  const verMais = () => {
+    axios.get<IPaginacao<IRestaurante>>(proximaPagina)
+      .then(resposta => { 
+        setRestaurantes([...restaurantes, ...resposta.data.results]) // Aqui eu to dizendo pra concatenar dois arrays, array da primeira pagina e array da segunda pagina
+        setProximaPagina(resposta.data.next)
+      })
+
+      .catch(erro => {
+        console.log(erro)
+      })
+  }
 
   return (<section className={style.ListaRestaurantes}>
     <h1>Os restaurantes mais <em>bacanas</em>!</h1>
     {restaurantes?.map(item => <Restaurante restaurante={item} key={item.id} />)}
+    {proximaPagina && <button onClick={verMais}>
+      Ver mais
+    </button>}
   </section>)
 }
+//SETIMO PASSO: criar um botao VER MAIS onde eu chamo o proximaPagina e vou criar uma funcao no onclick
+
 
 export default ListaRestaurantes
